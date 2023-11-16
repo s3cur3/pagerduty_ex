@@ -60,16 +60,16 @@ defmodule PagerDutyEx do
   end
 
   defp post(payload) do
-    case HTTPoison.post(event_url(), Poison.encode!(payload), [
+    case HTTPoison.post(event_url(), Jason.encode!(payload), [
            {"Content-Type", "application/json"}
          ]) do
       {:ok, %HTTPoison.Response{body: body, status_code: 202}} ->
-        body = atomize_keys(Poison.decode!(body))
+        body = atomize_keys(Jason.decode!(body))
         {:ok, struct!(PagerDutyEx.Response, body)}
 
       {:ok, %HTTPoison.Response{body: body, status_code: s}} ->
         if s == 429, do: Logger.warning("#{__MODULE__}.post: Request throttled by PagerDuty API")
-        {:error, struct!(PagerDutyEx.Response, Poison.decode!(body))}
+        {:error, struct!(PagerDutyEx.Response, Jason.decode!(body))}
 
       {:error, error} ->
         Logger.error("#{__MODULE__}.post: Unexpected error: #{inspect(error)}")

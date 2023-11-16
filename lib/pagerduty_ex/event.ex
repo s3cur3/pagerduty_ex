@@ -1,4 +1,5 @@
 defmodule PagerDutyEx.Event do
+  @derive Jason.Encoder
   defstruct routing_key: nil,
             # Required: "Integration Key" listed on the Events API V2 integration's detail page
             # Required: Supported values are "trigger", "acknowledge", and "resolve"
@@ -14,6 +15,7 @@ defmodule PagerDutyEx.Event do
 end
 
 defmodule PagerDutyEx.Event.Payload do
+  @derive Jason.Encoder
   @enforce_keys [:summary, :source, :severity]
   defstruct summary: nil,
             # A brief text summary of the event

@@ -56,8 +56,7 @@ defmodule PagerdutyEx.Mixfile do
     [
       extra_applications: [
         :httpoison,
-        :logger,
-        :poison
+        :logger
       ]
     ]
   end
@@ -77,7 +76,7 @@ defmodule PagerdutyEx.Mixfile do
       {:dialyxir, "~> 1.2", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.24", only: :dev, runtime: false},
       {:httpoison, "~> 2.2"},
-      {:poison, "~> 4.0"},
+      {:jason, "~> 1.4"},
       {:retry, "~> 0.13"},
       {:excoveralls, "~> 0.10", only: :test},
       {:recode, "~> 0.6", only: [:dev, :test]}

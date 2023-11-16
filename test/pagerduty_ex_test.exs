@@ -55,7 +55,7 @@ defmodule PagerDutyExTest do
       assert_api_returns(
         @api_endpoint,
         fn -> PagerDutyEx.trigger_event(@dummy_event) end,
-        Poison.encode!(@dummy_event),
+        Jason.encode!(@dummy_event),
         @successful_response
       )
     end
@@ -74,7 +74,7 @@ defmodule PagerDutyExTest do
       assert_api_returns(
         @api_endpoint,
         fn -> PagerDutyEx.acknowledge_event(@dummy_event) end,
-        Poison.encode!(@dummy_acknowledge_payload),
+        Jason.encode!(@dummy_acknowledge_payload),
         @successful_response
       )
     end
@@ -93,7 +93,7 @@ defmodule PagerDutyExTest do
       assert_api_returns(
         @api_endpoint,
         fn -> PagerDutyEx.resolve_event(@dummy_event) end,
-        Poison.encode!(@dummy_resolve_payload),
+        Jason.encode!(@dummy_resolve_payload),
         @successful_response
       )
     end
@@ -115,7 +115,7 @@ defmodule PagerDutyExTest do
             dedup_key: @dummy_event.dedup_key
           }
 
-          {202, [], Poison.encode!(response)}
+          {202, [], Jason.encode!(response)}
         end
       })
 
