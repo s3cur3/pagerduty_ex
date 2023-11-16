@@ -1,13 +1,16 @@
 defmodule SimpleHttpServer do
-  @type path_match :: String.t
+  @type path_match :: String.t()
   @type req :: :http_req
   @type status :: non_neg_integer
-  @type headers :: [{String.t, String.t}]
-  @type body :: String.t
+  @type headers :: [{String.t(), String.t()}]
+  @type body :: String.t()
   @type handler :: (req -> {status, headers, body})
 
-  @spec mount(port :: non_neg_integer, path_handler_map :: %{optional(path_match) => handler}) :: :ok
-  @spec serve_static_directory(args :: %{required(String.t) => path_match, optional(String.t) => port}) :: :ok
+  @spec mount(port :: non_neg_integer, path_handler_map :: %{optional(path_match) => handler}) ::
+          :ok
+  @spec serve_static_directory(
+          args :: %{required(String.t()) => path_match, optional(String.t()) => port}
+        ) :: :ok
 
   @default_port 4040
 
@@ -18,8 +21,7 @@ defmodule SimpleHttpServer do
   """
   def mount(port, path_handler_map) do
     paths_list =
-      path_handler_map
-      |> Enum.map(fn {path, fun} ->
+      Enum.map(path_handler_map, fn {path, fun} ->
         {path, CowboyFunctionHandler, fun}
       end)
 
@@ -42,13 +44,13 @@ defmodule SimpleHttpServer do
 
     port = args[:port] || @default_port
 
-    dispatch = :cowboy_router.compile([
-      {:_,
-        [
-          {"/[...]", :cowboy_static, {:dir, args[:directory]}},
-        ]
-      }
-    ])
+    dispatch =
+      :cowboy_router.compile([
+        {:_,
+         [
+           {"/[...]", :cowboy_static, {:dir, args[:directory]}}
+         ]}
+      ])
 
     ranch_opts = [{:port, port}]
     cowboy_opts = [{:env, [{:dispatch, dispatch}]}]
@@ -56,6 +58,7 @@ defmodule SimpleHttpServer do
   end
 
   def stop, do: stop(@default_port)
+
   def stop(port) do
     :ok = :cowboy.stop_listener("simple_http_server_#{port}")
   end

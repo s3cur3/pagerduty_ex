@@ -17,17 +17,17 @@ defmodule PagerDutyExTest do
       component: "tests",
       group: "modernpastry",
       class: "tests",
-      custom_details: %{foo: "bar"},
+      custom_details: %{foo: "bar"}
     }
   }
   @dummy_acknowledge_payload %{
-    routing_key:  @dummy_event.routing_key,
-    dedup_key:    @dummy_event.dedup_key,
+    routing_key: @dummy_event.routing_key,
+    dedup_key: @dummy_event.dedup_key,
     event_action: "acknowledge"
   }
   @dummy_resolve_payload %{
-    routing_key:  @dummy_event.routing_key,
-    dedup_key:    @dummy_event.dedup_key,
+    routing_key: @dummy_event.routing_key,
+    dedup_key: @dummy_event.dedup_key,
     event_action: "resolve"
   }
   @port 4200
@@ -45,6 +45,7 @@ defmodule PagerDutyExTest do
   describe "trigger_event/1" do
     test "raises if the integration key isn't provided" do
       Application.put_env(:pagerduty_ex, :integration_key, nil)
+
       assert_raise(RuntimeError, fn ->
         PagerDutyEx.trigger_event(@dummy_event)
       end)
@@ -63,6 +64,7 @@ defmodule PagerDutyExTest do
   describe "acknowledge_event/1" do
     test "raises if the integration key isn't provided" do
       Application.put_env(:pagerduty_ex, :integration_key, nil)
+
       assert_raise(RuntimeError, fn ->
         PagerDutyEx.acknowledge_event(@dummy_event)
       end)
@@ -81,6 +83,7 @@ defmodule PagerDutyExTest do
   describe "resolve_event/1" do
     test "raises if the integration key isn't provided" do
       Application.put_env(:pagerduty_ex, :integration_key, nil)
+
       assert_raise(RuntimeError, fn ->
         PagerDutyEx.resolve_event(@dummy_event)
       end)
@@ -99,15 +102,22 @@ defmodule PagerDutyExTest do
   @doc "Verifies that the API endpoint returns the expected response to a given operation"
   def assert_api_returns(endpoint, yield, expected_payload, expected_response) do
     parent = self()
-    {:ok, http_pid} = SimpleHttpServer.mount(@port, %{
-      endpoint => fn(req) ->
-        body = elem(req, 21)
-        send(parent, {:received_request, body})
 
-        response = %{status: "success", message: "Event processed", dedup_key: @dummy_event.dedup_key}
-        {202, [], Poison.encode!(response)}
-      end
-    })
+    {:ok, http_pid} =
+      SimpleHttpServer.mount(@port, %{
+        endpoint => fn req ->
+          body = elem(req, 21)
+          send(parent, {:received_request, body})
+
+          response = %{
+            status: "success",
+            message: "Event processed",
+            dedup_key: @dummy_event.dedup_key
+          }
+
+          {202, [], Poison.encode!(response)}
+        end
+      })
 
     ExUnit.CaptureLog.capture_log(fn ->
       {:ok, ^expected_response} = yield.()
@@ -121,12 +131,12 @@ defmodule PagerDutyExTest do
     assert payload == expected_payload
 
     SimpleHttpServer.stop(@port)
-    assert_have_exited [http_pid]
+    assert_have_exited([http_pid])
   end
 
   @doc "Will block until the given processes are down"
   def assert_have_exited(pids) do
-    Enum.each(pids, fn(pid) ->
+    Enum.each(pids, fn pid ->
       ref = Process.monitor(pid)
       assert_receive {:DOWN, ^ref, _, _, _}, 5_000
     end)

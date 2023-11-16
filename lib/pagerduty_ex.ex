@@ -13,10 +13,14 @@ defmodule PagerDutyEx do
 
     case post_with_retry(event) do
       {:ok, response} ->
-        Logger.debug("#{__MODULE__}.trigger_event: Sent event to PagerDuty: #{event.payload.summary}")
+        Logger.debug(
+          "#{__MODULE__}.trigger_event: Sent event to PagerDuty: #{event.payload.summary}"
+        )
+
         {:ok, response}
+
       error ->
-        Logger.error("#{__MODULE__}.trigger_event: Failed with error: #{inspect error}")
+        Logger.error("#{__MODULE__}.trigger_event: Failed with error: #{inspect(error)}")
         error
     end
   end
@@ -46,7 +50,7 @@ defmodule PagerDutyEx do
   end
 
   defp post_with_retry(payload) do
-    retry with: exponential_backoff() |> randomize |> expiry(15_000) do
+    retry with: exponential_backoff() |> randomize() |> expiry(15_000) do
       post(payload)
     after
       result -> result
@@ -56,17 +60,19 @@ defmodule PagerDutyEx do
   end
 
   defp post(payload) do
-    case HTTPoison.post(event_url(), Poison.encode!(payload), [{"Content-Type", "application/json"}]) do
+    case HTTPoison.post(event_url(), Poison.encode!(payload), [
+           {"Content-Type", "application/json"}
+         ]) do
       {:ok, %HTTPoison.Response{body: body, status_code: 202}} ->
         body = atomize_keys(Poison.decode!(body))
         {:ok, struct!(PagerDutyEx.Response, body)}
 
       {:ok, %HTTPoison.Response{body: body, status_code: s}} ->
-        if s == 429, do: Logger.warn("#{__MODULE__}.post: Request throttled by PagerDuty API")
+        if s == 429, do: Logger.warning("#{__MODULE__}.post: Request throttled by PagerDuty API")
         {:error, struct!(PagerDutyEx.Response, Poison.decode!(body))}
 
       {:error, error} ->
-        Logger.error("#{__MODULE__}.post: Unexpected error: #{inspect error}")
+        Logger.error("#{__MODULE__}.post: Unexpected error: #{inspect(error)}")
         {:error, error}
     end
   end
@@ -94,8 +100,8 @@ defmodule PagerDutyEx do
   defp integration_key do
     case Application.get_env(:pagerduty_ex, :integration_key) do
       {:system, env_var} -> System.get_env(env_var)
-      nil                -> raise "You need to provide a PagerDutyEx integration key"
-      val                -> val
+      nil -> raise "You need to provide a PagerDutyEx integration key"
+      val -> val
     end
   end
 end
